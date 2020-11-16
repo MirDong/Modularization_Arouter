@@ -1,0 +1,43 @@
+apply plugin: 'com.android.application'
+def androidConfig = rootProject.ext.androidConfig
+android {
+    compileSdkVersion androidConfig.compileSdkVersion
+    buildToolsVersion androidConfig.buildToolsVersion
+
+    defaultConfig {
+        applicationId appId.app
+        minSdkVersion androidConfig.minSdkVersion
+        targetSdkVersion androidConfig.targetSdkVersion
+        versionCode androidConfig.versionCode
+        versionName androidConfig.versionName
+
+        testInstrumentationRunner androidConfig.testInstrumentationRunner
+        //标记，正式环境 和 测试环境 的标记  组件化和集成化需要
+        buildConfigField("boolean","isRelease",String.valueOf(isRelease))
+    }
+
+    buildTypes {
+        debug {
+            buildConfigField("String","debug","\"${url.debug}\"")
+        }
+        release {
+            buildConfigField("String","release","\"${url.release}\"")
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: "libs", include: ["*.jar"])
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+    dependenciesID.each {k,v -> implementation v}
+
+    if (isRelease){
+        // 依附app壳
+        implementation project(':login')
+        implementation project(':personal')
+    }
+}

@@ -1,0 +1,31 @@
+ext {
+    //正式环境与测试环境
+    isRelease = false
+    // 正式环境 和 测试环境 服务器 URL 配置
+    url = [
+            "debug"  : "https://192.188.22.99/debug",
+            "release": "https://192.188.22.99/release"
+    ]
+
+    androidConfig = [
+                compileSdkVersion: 30,
+                buildToolsVersion : "30.0.2",
+                applicationId : "com.dzk.modularization_arouter",
+                minSdkVersion : 19,
+                targetSdkVersion : 30,
+                versionCode : 1,
+                versionName : "1.0",
+                testInstrumentationRunner :"androidx.test.runner.AndroidJUnitRunner"
+    ]
+
+    appId = [
+            app : "com.dzk.modularization_arouter",
+            login : "com.dzk.login",
+            personal : "com.dzk.personal"
+    ]
+
+    dependenciesID = [
+            "appcompat" : "androidx.appcompat:appcompat:1.2.0",
+            "constraintlayout" : "androidx.constraintlayout:constraintlayout:2.0.4",
+    ]
+}

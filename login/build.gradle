@@ -1,0 +1,58 @@
+if (isRelease){
+    // 如果是发布版本时，各个模块都不能独立运行
+    apply plugin: 'com.android.library'// 正式环境  library不能独立运行
+}else {
+    apply plugin: 'com.android.application'// 测试环境 application独立运行
+}
+
+android {
+    compileSdkVersion androidConfig.compileSdkVersion
+    buildToolsVersion androidConfig.buildToolsVersion
+
+    defaultConfig {
+        if (!isRelease){
+            applicationId appId.login// 组件化模式能独立运行才能有applicationId
+        }
+        minSdkVersion androidConfig.minSdkVersion
+        targetSdkVersion androidConfig.targetSdkVersion
+        versionCode androidConfig.versionCode
+        versionName androidConfig.versionName
+
+        testInstrumentationRunner androidConfig.testInstrumentationRunner
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    sourceSets {
+        main {
+            if (!isRelease){
+                // 如果是组件化模式，需要单独运行时 Debug
+                manifest.srcFile 'src/main/debug/AndroidManifest.xml' // 生效
+            }else {
+                // 集成化模式，整个项目打包apk
+                manifest.srcFile 'src/main/AndroidManifest.xml' // 让我们之前 默认的路径下的清单文件再次生效
+                java {
+                    // release 时 debug 目录下文件不需要合并到主工程
+                    exclude '**/debug/**'
+                }
+            }
+
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: "libs", include: ["*.jar"])
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+    dependenciesID.each {
+        k,v -> implementation v
+    }
+}

@@ -1,0 +1,4 @@
+include ':personal'
+include ':login'
+include ':app'
+rootProject.name = "Modularization_Arouter"
