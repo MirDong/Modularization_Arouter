@@ -5,6 +5,7 @@ import android.os.Bundle;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.dzk.login.R;
 
 
 public class Login_DebugActivity extends AppCompatActivity {

@@ -40,4 +40,6 @@ dependencies {
         implementation project(':login')
         implementation project(':personal')
     }
+
+    implementation project(':common')
 }

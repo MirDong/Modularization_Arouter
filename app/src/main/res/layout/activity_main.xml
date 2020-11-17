@@ -7,6 +7,7 @@
     tools:context=".MainActivity">
 
     <TextView
+        android:id="@+id/navigate_to_login"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="进入Login模块"
@@ -15,6 +16,18 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         android:onClick="startLoginModel"
+        />
+
+    <TextView
+        android:id="@+id/navigate_to_personal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="进入Personal模块"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/navigate_to_login"
+        android:onClick="startPersonalModel"
         />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

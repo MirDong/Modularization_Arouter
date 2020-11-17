@@ -2,9 +2,12 @@ package com.dzk.login;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 
-import com.dzk.login.debug.R;
+import com.dzk.common.PathRecordManager;
+import com.dzk.login.R;
 
 public class Login_MainActivity extends AppCompatActivity {
 
@@ -14,5 +17,11 @@ public class Login_MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.login_activity_main);
 
+    }
+
+    public void startPersonalModel(View view) {
+        Class<?> targetClass = PathRecordManager.startTargetActivity("personal",
+                "Personal_MainActivity");
+        startActivity(new Intent(Login_MainActivity.this,targetClass));
     }
 }

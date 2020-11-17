@@ -55,4 +55,6 @@ dependencies {
     dependenciesID.each {
         k,v -> implementation v
     }
+
+    implementation project(':common')
 }

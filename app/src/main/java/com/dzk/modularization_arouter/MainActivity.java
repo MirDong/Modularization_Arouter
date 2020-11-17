@@ -8,6 +8,9 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import com.dzk.login.Login_MainActivity;
+import com.dzk.personal.Personal_MainActivity;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -34,8 +37,18 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // 从App壳 到 Login模块
+
+    // 从App壳 到  Login登录
     public void startLoginModel(View view) {
-//        startActivity(new Intent(MainActivity.this, Login_MainActivity.class));
+        Intent intent = new Intent(this, Login_MainActivity.class);
+        intent.putExtra("name", "Derry");
+        startActivity(intent);
+    }
+
+    // 从App壳 到  Personal我的
+    public void startPersonalModel(View view) {
+        Intent intent = new Intent(this, Personal_MainActivity.class);
+        intent.putExtra("name", "Derry");
+        startActivity(intent);
     }
 }
