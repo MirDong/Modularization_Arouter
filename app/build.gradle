@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 def androidConfig = rootProject.ext.androidConfig
 android {
+    compileOptions.encoding = "utf-8"
     compileSdkVersion androidConfig.compileSdkVersion
     buildToolsVersion androidConfig.buildToolsVersion
 
@@ -12,8 +13,16 @@ android {
         versionName androidConfig.versionName
 
         testInstrumentationRunner androidConfig.testInstrumentationRunner
+        // 这个方法接收三个非空的参数，第一个：确定值的类型，第二个：指定key的名字，第三个：传值（必须是String）
+        // 为什么需要定义这个？因为src代码中有可能需要用到跨模块交互，如果是组件化模块显然不行
+        // 切记：不能在android根节点，只能在defaultConfig或buildTypes节点下
         //标记，正式环境 和 测试环境 的标记  组件化和集成化需要
         buildConfigField("boolean","isRelease",String.valueOf(isRelease))
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = [moduleName:project.getName(),packageNameForAPT: appId.app]
+            }
+        }
     }
 
     buildTypes {
@@ -40,6 +49,11 @@ dependencies {
         implementation project(':login')
         implementation project(':personal')
     }
-
+    //公共基础库
     implementation project(':common')
+    //  arouter 专用 注解模块
+    implementation project(":arouter_annotations")
+
+    // arouter 专用 注解处理器
+    annotationProcessor project(':arouter_compiler')
 }

@@ -8,10 +8,11 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import com.dzk.arouter_annotations.ARouter;
 import com.dzk.login.Login_MainActivity;
 import com.dzk.personal.Personal_MainActivity;
 
-
+@ARouter(path = "/app/MainActivity")
 public class MainActivity extends AppCompatActivity {
 
     private final static String TAG = MainActivity.class.getSimpleName();

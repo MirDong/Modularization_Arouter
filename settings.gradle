@@ -1,3 +1,6 @@
+include ':arouter_api'
+include ':arouter_compiler'
+include ':arouter_annotations'
 include ':common'
 include ':personal'
 include ':login'
