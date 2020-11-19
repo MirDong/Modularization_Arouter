@@ -57,4 +57,9 @@ dependencies {
     }
 
     implementation project(':common')
+    //  arouter 专用 注解模块
+    implementation project(":arouter_annotations")
+
+    // arouter 专用 注解处理器
+    annotationProcessor project(':arouter_compiler')
 }

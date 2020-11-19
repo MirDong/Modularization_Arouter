@@ -6,9 +6,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
+import com.dzk.arouter_annotations.ARouter;
 import com.dzk.common.PathRecordManager;
 import com.dzk.login.R;
-
+@ARouter(path = "/login/Login_MainActivity")
 public class Login_MainActivity extends AppCompatActivity {
 
     @Override

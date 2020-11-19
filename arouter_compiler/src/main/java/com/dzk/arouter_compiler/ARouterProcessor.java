@@ -1,6 +1,7 @@
 package com.dzk.arouter_compiler;
 
 import com.dzk.arouter_annotations.ARouter;
+import com.dzk.arouter_annotations.bean.RouterBean;
 import com.dzk.arouter_compiler.config.ProcessorConfig;
 import com.google.auto.service.AutoService;
 import com.squareup.javapoet.JavaFile;
@@ -24,9 +25,49 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
+// 先JavaPoet 写一个简单示例，方法--->类--> 包，是倒序写的思路哦
+/**
+ * package com.example.helloworld;
+ *
+ * public final class HelloWorld {
+ *   public static void main(String[] args) {
+ *     System.out.println("Hello, JavaPoet!");
+ *   }
+ * }
+ */
+
+/**
+ * bellow is realizable of HelloWorld class File with javapoet tool
+ *
+ *    //1.方法
+ *             MethodSpec methodSpec = MethodSpec.methodBuilder("main")
+ *                     .addModifiers(Modifier.PUBLIC,Modifier.STATIC)
+ *                     .returns(void.class)
+ *                     .addParameter(String[].class,"args")
+ *                     .addStatement("$T.out.println($S)",System.class,"Hello, JavaPoet!")
+ *                     .build();
+ *
+ *             //2.类
+ *             TypeSpec typeSpec = TypeSpec.classBuilder("HelloWorld")
+ *                     .addModifiers(Modifier.PUBLIC,Modifier.FINAL)
+ *                     .addMethod(methodSpec)
+ *                     .build();
+ *             //3.包
+ *             JavaFile javaFile = JavaFile.builder("com.example.helloworld", typeSpec).build();
+ *             try {
+ *                 javaFile.writeTo(filer);
+ *             } catch (IOException e) {
+ *                 e.printStackTrace();
+ *                 messager.printMessage(Diagnostic.Kind.NOTE, "生成Test文件时失败，异常:" + e.getMessage());
+ *             }
+ *
+ */
+
+
 
 // 通过auto-service中的@AutoService可以自动生成AutoService注解处理器，用来注册
 // 用来生成 META-INF/services/javax.annotation.processing.Processor 文件
@@ -63,7 +104,7 @@ public class ARouterProcessor extends AbstractProcessor {
         elementsTool = processingEnvironment.getElementUtils();
         messager = processingEnvironment.getMessager();
         filer = processingEnvironment.getFiler();
-
+        typeTool = processingEnvironment.getTypeUtils();
         //只有接收到app壳传递过来的数据，才能证明我们的APT环境搭建完成
         options = processingEnvironment.getOptions().get(ProcessorConfig.OPTIONS);
         String aptPackage = processingEnvironment.getOptions().get(ProcessorConfig.APT_PACKAGE);
@@ -85,50 +126,28 @@ public class ARouterProcessor extends AbstractProcessor {
      */
     @Override
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
+        messager.printMessage(Diagnostic.Kind.NOTE,"process.....");
         if (set.isEmpty()){
-            messager.printMessage(Diagnostic.Kind.NOTE, "并没有发现 被@ARouter注解的地方呀");
+            messager.printMessage(Diagnostic.Kind.NOTE, "can not find the class marked by @ARouter");
             return false;
         }
         //获取所有被@ARouter注解的元素集合
         Set<? extends Element> elements = roundEnvironment.getElementsAnnotatedWith(ARouter.class);
+        TypeElement activityType = elementsTool.getTypeElement(ProcessorConfig.ACTIVITY_PACKAGE);
+        TypeMirror activityMirror = activityType.asType();
         //遍历所有的类节点
         for (Element element : elements) {
             String packageName = elementsTool.getPackageOf(element).getQualifiedName().toString();
             String className = element.getSimpleName().toString();
-            messager.printMessage(Diagnostic.Kind.NOTE, ">>>>>>>>>>>>>> 被@ARetuer注解的类有：" + className);
-            // 先JavaPoet 写一个简单示例，方法--->类--> 包，是倒序写的思路哦
-            /**
-             * package com.example.helloworld;
-             *
-             * public final class HelloWorld {
-             *   public static void main(String[] args) {
-             *     System.out.println("Hello, JavaPoet!");
-             *   }
-             * }
-             */
+            messager.printMessage(Diagnostic.Kind.NOTE, ">>>>>>>>>>>>>> the class marked by @ARetuer is：" + className);
 
-            //1.方法
-            MethodSpec methodSpec = MethodSpec.methodBuilder("main")
-                    .addModifiers(Modifier.PUBLIC,Modifier.STATIC)
-                    .returns(void.class)
-                    .addParameter(String[].class,"args")
-                    .addStatement("$T.out.println($S)",System.class,"Hello, JavaPoet!")
+            ARouter aRouter = element.getAnnotation(ARouter.class);
+            RouterBean routerBean = new RouterBean.Builder()
+                    .addGroup(aRouter.group())
+                    .addPath(aRouter.path())
+                    .addElement(element)
                     .build();
-
-            //2.类
-            TypeSpec typeSpec = TypeSpec.classBuilder("HelloWorld")
-                    .addModifiers(Modifier.PUBLIC,Modifier.FINAL)
-                    .addMethod(methodSpec)
-                    .build();
-            //3.包
-            JavaFile javaFile = JavaFile.builder("com.example.helloworld", typeSpec).build();
-            try {
-                javaFile.writeTo(filer);
-            } catch (IOException e) {
-                e.printStackTrace();
-                messager.printMessage(Diagnostic.Kind.NOTE, "生成Test文件时失败，异常:" + e.getMessage());
-            }
         }
-        return true;
+        return false;
     }
 }
