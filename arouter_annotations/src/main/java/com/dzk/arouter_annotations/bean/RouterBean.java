@@ -46,6 +46,25 @@ public class RouterBean {
         this.group = group;
     }
 
+    public String getPath() {
+        return path;
+    }
+
+    public String getGroup() {
+        return group;
+    }
+
+    public TypeEnum getTypeEnum() {
+        return typeEnum;
+    }
+
+    public Element getElement() {
+        return element;
+    }
+
+    public void setGroup(String group) {
+        this.group = group;
+    }
 
     /**对外提供简易版构造方法，主要是为了方便APT生成代码
      * @param type
@@ -58,6 +77,9 @@ public class RouterBean {
         return new RouterBean(type, clazz, path, group);
     }
 
+    public void setType(TypeEnum type){
+        this.typeEnum = type;
+    }
     /**构造者模式相关
      * @param builder
      */
@@ -83,6 +105,7 @@ public class RouterBean {
         private String path;
         // 路由组
         private String group;
+
 
         public Builder addType(TypeEnum typeEnum){
             this.type = typeEnum;
