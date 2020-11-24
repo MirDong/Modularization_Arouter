@@ -20,6 +20,15 @@ android {
 
         testInstrumentationRunner androidConfig.testInstrumentationRunner
         consumerProguardFiles "consumer-rules.pro"
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                // project.getName() == personal
+                // this.project.getName() == personal
+                // this.getProject().getName() == personal
+                arguments = [moduleName: project.getName(), packageNameForAPT: appId.login]
+            }
+        }
     }
 
     buildTypes {
@@ -38,4 +47,9 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
     dependenciesID.each { k,v -> implementation v}
     implementation project(':common')
+    //  arouter 专用 注解模块
+    implementation project(":arouter_annotations")
+
+    // arouter 专用 注解处理器
+    annotationProcessor project(':arouter_compiler')
 }

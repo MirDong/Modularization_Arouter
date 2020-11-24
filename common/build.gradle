@@ -34,5 +34,7 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
-
+// 因为每一个 “子Module”都依赖了 common，所有当我们在 common中依赖 arouter_api（柱状）
+    // 就等于 全部都依赖了 arouter_api
+    api project(":arouter_api")
 }

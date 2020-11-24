@@ -20,6 +20,14 @@ android {
 
         testInstrumentationRunner androidConfig.testInstrumentationRunner
         consumerProguardFiles "consumer-rules.pro"
+        javaCompileOptions {
+            annotationProcessorOptions {
+                // project.getName() == app
+                // this.project.getName() == app
+                // this.getProject().getName() == app
+                arguments = [moduleName: project.getName(), packageNameForAPT: appId.login]
+            }
+        }
     }
 
     buildTypes {

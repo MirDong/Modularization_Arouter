@@ -11,6 +11,7 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.WildcardTypeName;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -39,11 +40,11 @@ import javax.tools.Diagnostic;
 // 先JavaPoet 写一个简单示例，方法--->类--> 包，是倒序写的思路哦
 /**
  * package com.example.helloworld;
- *
+ * <p>
  * public final class HelloWorld {
- *   public static void main(String[] args) {
- *     System.out.println("Hello, JavaPoet!");
- *   }
+ * public static void main(String[] args) {
+ * System.out.println("Hello, JavaPoet!");
+ * }
  * }
  */
 
@@ -75,7 +76,6 @@ import javax.tools.Diagnostic;
  */
 
 
-
 // 通过auto-service中的@AutoService可以自动生成AutoService注解处理器，用来注册
 // 用来生成 META-INF/services/javax.annotation.processing.Processor 文件
 @AutoService(Processor.class)
@@ -84,7 +84,7 @@ import javax.tools.Diagnostic;
 // 指定JDK编译版本
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 // 注解处理器接收的参数
-@SupportedOptions({ProcessorConfig.OPTIONS,ProcessorConfig.APT_PACKAGE})
+@SupportedOptions({ProcessorConfig.OPTIONS, ProcessorConfig.APT_PACKAGE})
 public class ARouterProcessor extends AbstractProcessor {
     /**
      * 操作Element的工具类(类，函数，属性，都是Element)
@@ -106,8 +106,9 @@ public class ARouterProcessor extends AbstractProcessor {
     /**path仓库**/
     private Map<String, List<RouterBean>> mPathMaps = new HashMap<>();
     /**group仓库**/
-    private Map<String,String> mGroupMaps = new HashMap<>();
+    private Map<String, String> mGroupMaps = new HashMap<>();
     private String aptPackage;
+
     @Override
     public synchronized void init(ProcessingEnvironment processingEnvironment) {
         super.init(processingEnvironment);
@@ -119,14 +120,15 @@ public class ARouterProcessor extends AbstractProcessor {
         //只有接收到app壳传递过来的数据，才能证明我们的APT环境搭建完成
         options = processingEnvironment.getOptions().get(ProcessorConfig.OPTIONS);
         aptPackage = processingEnvironment.getOptions().get(ProcessorConfig.APT_PACKAGE);
-        messager.printMessage(Diagnostic.Kind.NOTE,">>>>>>>>>>>>>>>>>>>>>> options:" + options);
-        messager.printMessage(Diagnostic.Kind.NOTE,">>>>>>>>>>>>>>>>>>>>>> aptPackage:" + aptPackage);
+        messager.printMessage(Diagnostic.Kind.NOTE, ">>>>>>>>>>>>>>>>>>>>>> options:" + options);
+        messager.printMessage(Diagnostic.Kind.NOTE, ">>>>>>>>>>>>>>>>>>>>>> aptPackage:" + aptPackage);
         if (options != null && aptPackage != null) {
             messager.printMessage(Diagnostic.Kind.NOTE, "APT Environment create finished....");
         } else {
             messager.printMessage(Diagnostic.Kind.NOTE, "APT Environment appear problem，please check options and aptPackage is null or not...");
         }
     }
+
     /**
      * 相当于main函数，开始处理注解
      * 注解处理器的核心方法，处理具体的注解，生成Java文件
@@ -137,8 +139,8 @@ public class ARouterProcessor extends AbstractProcessor {
      */
     @Override
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
-        messager.printMessage(Diagnostic.Kind.NOTE,"process.....");
-        if (set.isEmpty()){
+        messager.printMessage(Diagnostic.Kind.NOTE, "process.....");
+        if (set.isEmpty()) {
             messager.printMessage(Diagnostic.Kind.NOTE, "can not find the class marked by @ARouter");
             return false;
         }
@@ -160,25 +162,25 @@ public class ARouterProcessor extends AbstractProcessor {
                     .build();
             // ARouter注解的类 必须继承 Activity
             TypeMirror elementMirror = element.asType();
-            if (typeTool.isSubtype(elementMirror,activityMirror)){
+            if (typeTool.isSubtype(elementMirror, activityMirror)) {
                 routerBean.setType(RouterBean.TypeEnum.ACTIVITY);
-            }else {
+            } else {
                 throw new RuntimeException("the class by @ARouter need to TypeNum value");
             }
 
-            if (checkRouterPath(routerBean)){
+            if (checkRouterPath(routerBean)) {
                 messager.printMessage(Diagnostic.Kind.NOTE, "RouterBean Check Success:" + routerBean.toString());
                 List<RouterBean> beans = mPathMaps.get(routerBean.getGroup());
                 // 如果从Map中找不到key为：bean.getGroup()的数据，就新建List集合再添加进Map
-                if(ProcessorUtils.isEmpty(beans)){
+                if (ProcessorUtils.isEmpty(beans)) {
                     beans = new ArrayList<>();
                     beans.add(routerBean);
-                    mPathMaps.put(routerBean.getGroup(),beans);
-                }else {
+                    mPathMaps.put(routerBean.getGroup(), beans);
+                } else {
                     beans.add(routerBean);
                 }
 
-            }else {
+            } else {
                 messager.printMessage(Diagnostic.Kind.ERROR, "@ARouter注解未按规范配置，如：/app/MainActivity");
             }
         }//end for
@@ -186,6 +188,8 @@ public class ARouterProcessor extends AbstractProcessor {
         //定义（生成类文件实现的接口）
         TypeElement groupType = elementsTool.getTypeElement(ProcessorConfig.AROUTER_API_GROUP);
         TypeElement pathType = elementsTool.getTypeElement(ProcessorConfig.AROUTER_API_PATH);
+        messager.printMessage(Diagnostic.Kind.NOTE, "pathType = " + pathType);
+        messager.printMessage(Diagnostic.Kind.NOTE, "groupType = " + groupType);
         //第一步:Path系列
         try {
             // 生成 Path类
@@ -202,16 +206,97 @@ public class ARouterProcessor extends AbstractProcessor {
             e.printStackTrace();
             messager.printMessage(Diagnostic.Kind.NOTE, "在生成GROUP模板时，异常了 e:" + e.getMessage());
         }
-        return false;
+        return true;
     }
 
-    private void makeGroupFile(TypeElement groupType, TypeElement pathType) throws IOException{
+    /**
+     * 生成路由组Group文件,如：ARouter$$Group$$app
+     * @param groupType  ARouterGroup接口信息
+     * @param pathType   ARouterPath接口信息
+     * @throws IOException
+     */
+    private void makeGroupFile(TypeElement groupType, TypeElement pathType) throws IOException {
+        // 仓库二 缓存二 判断是否有需要生成的类文件
+        if (ProcessorUtils.isEmpty(mGroupMaps) || ProcessorUtils.isEmpty(mPathMaps)) {
+            return;
+        }
+        // 返回值 Map<String, Class<? extends ARouterPath>>
+        TypeName methodReturn = ParameterizedTypeName.get(
+                //Map
+                ClassName.get(Map.class),
+                //Map<String,
+                ClassName.get(String.class),
+                // Class<? extends ARouterPath>>
+                ParameterizedTypeName.get(ClassName.get(Class.class),
+                        // ? extends ARouterPath
+                        WildcardTypeName.subtypeOf(ClassName.get(pathType)))
+        );
 
+        // 1.方法 public Map<String, Class<? extends ARouterPath>> getGroupMap() {
+        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(ProcessorConfig.GROUP_METHOD_NAME)//方法名:getGroupMap
+                // 重写注解 @Override
+                .addAnnotation(Override.class)
+                // public修饰符
+                .addModifiers(Modifier.PUBLIC)
+                // 方法返回值
+                .returns(methodReturn);
+
+        // Map<String, Class<? extends ARouterPath>> groupMap = new HashMap<>();
+        methodBuilder.addStatement("$T<$T,$T> $N = new $T<>()",
+                ClassName.get(Map.class),
+                ClassName.get(String.class),
+                // Class<? extends ARouterPath>
+                ParameterizedTypeName.get(ClassName.get(Class.class),
+                        WildcardTypeName.subtypeOf(ClassName.get(pathType))),
+                ProcessorConfig.GROUP_VAR1,
+                ClassName.get(HashMap.class));
+
+        //  groupMap.put("personal", ARouter$$Path$$personal.class);
+        //	groupMap.put("login", ARouter$$Path$$login.class);
+        for (Map.Entry<String, String> entry : mGroupMaps.entrySet()) {
+            methodBuilder.addStatement("$N.put($S,$T.class)",
+                    // groupMap.put
+                    ProcessorConfig.GROUP_VAR1,
+                    // login, personal ,app
+                    entry.getKey(),
+                    ClassName.get(aptPackage, entry.getValue()));
+
+        }//end for
+
+        // return groupMap;
+        methodBuilder.addStatement("return $N", ProcessorConfig.GROUP_VAR1);
+
+        // 最终生成的类文件名 ARouter$$Group$$ + personal
+        String finalClassName = ProcessorConfig.GROUP_FILE_NAME + options;
+
+        messager.printMessage(Diagnostic.Kind.NOTE, "APT生成路由组Group类文件：" +
+                aptPackage + "." + finalClassName);
+
+        // 生成类文件：ARouter$$Group$$app
+        JavaFile.builder(aptPackage,//包名
+                //类名
+                TypeSpec.classBuilder(finalClassName)
+                        // 实现ARouterLoadGroup接口 implements ARouterGroup
+                        .addSuperinterface(ClassName.get(groupType))
+                        .addModifiers(Modifier.PUBLIC)
+                        // 方法的构建（方法参数 + 方法体）
+                        .addMethod(methodBuilder.build())
+                        // 类构建完成
+                        .build())
+                // JavaFile构建完成
+                .build()
+                // 文件生成器开始生成类文件
+                .writeTo(filer);
     }
 
-    private void makePathFile(TypeElement pathType) throws IOException{
+    /**
+     * 系列Path的类  生成工作
+     * @param pathType ARouterPath 高层的标准
+     * @throws IOException
+     */
+    private void makePathFile(TypeElement pathType) throws IOException {
         //当Map中没有元素时,无需生成文件
-        if(ProcessorUtils.isEmpty(mPathMaps)){
+        if (ProcessorUtils.isEmpty(mPathMaps)) {
             return;
         }
         // 任何的class类型，必须包装
@@ -244,12 +329,12 @@ public class ARouterProcessor extends AbstractProcessor {
                     // Map<String, RouterBean> pathMap = new HashMap<>();
                     ClassName.get(HashMap.class));
 
-            List<RouterBean>pathList = entry.getValue();
+            List<RouterBean> pathList = entry.getValue();
             /**
              $N == 变量 变量有引用 所以 N
              $L == TypeEnum.ACTIVITY
              */
-            for (RouterBean bean : pathList){
+            for (RouterBean bean : pathList) {
                 methodBuilder.addStatement("$N.put($S,$T.create($T.$L,$T.class,$S,$S))",
                         // pathMap.put
                         ProcessorConfig.PATH_VAR1,
@@ -270,7 +355,7 @@ public class ARouterProcessor extends AbstractProcessor {
                 );
             }//end for
             // return pathMap;
-            methodBuilder.addStatement("return $N",ProcessorConfig.PATH_VAR1);
+            methodBuilder.addStatement("return $N", ProcessorConfig.PATH_VAR1);
             //注意：不能像以前一样，1.方法，2.类  3.包， 因为这里面有implements ，所以 方法和类要合为一体生成才行，这是特殊情况
             // 最终生成的类文件名  ARouter$$Path$$personal
             String finalClassName = ProcessorConfig.PATH_FILE_NAME + entry.getKey();
@@ -281,16 +366,16 @@ public class ARouterProcessor extends AbstractProcessor {
                     aptPackage,
                     //类名
                     TypeSpec.classBuilder(finalClassName)
-                    // 实现ARouterPath接口  implements ARouterPath==pathType
-                    .addSuperinterface(ClassName.get(pathType))
-                    .addModifiers(Modifier.PUBLIC)
-                     // 方法的构建（方法参数 + 方法体）
-                    .addMethod(methodBuilder.build())
-                    .build())
+                            // 实现ARouterPath接口  implements ARouterPath==pathType
+                            .addSuperinterface(ClassName.get(pathType))
+                            .addModifiers(Modifier.PUBLIC)
+                            // 方法的构建（方法参数 + 方法体）
+                            .addMethod(methodBuilder.build())
+                            .build())
                     .build()
-            .writeTo(filer);
+                    .writeTo(filer);
             //注意：PATH 路径文件生成出来了，才能赋值路由组mGroupMapsupMap
-            mGroupMaps.put(entry.getKey(),finalClassName);
+            mGroupMaps.put(entry.getKey(), finalClassName);
         }
     }
 
@@ -305,8 +390,8 @@ public class ARouterProcessor extends AbstractProcessor {
         // path : "/app/MainActivity" , ...
         String path = routerBean.getPath();
         // @ARouter注解中的path值，必须要以 / 开头（模仿阿里Arouter规范）
-        if (ProcessorUtils.isEmpty(path) || !path.startsWith("/")){
-            messager.printMessage(Diagnostic.Kind.ERROR,"path can not be null or start with /");
+        if (ProcessorUtils.isEmpty(path) || !path.startsWith("/")) {
+            messager.printMessage(Diagnostic.Kind.ERROR, "path can not be null or start with /");
             return false;
         }
 
@@ -316,13 +401,13 @@ public class ARouterProcessor extends AbstractProcessor {
             messager.printMessage(Diagnostic.Kind.ERROR, "@ARouter注解未按规范配置，如：/app/MainActivity");
             return false;
         }
-        if (!ProcessorUtils.isEmpty(group) && !options.equals(group)){
+        if (!ProcessorUtils.isEmpty(group) && !options.equals(group)) {
             // 架构师定义规范，让开发者遵循
             messager.printMessage(Diagnostic.Kind.ERROR, "@ARouter注解中的group值必须和子模块名一致！");
             return false;
-        }else {
+        } else {
             //从中间截取group如：/app/MainActivity 截取出 app
-            String finalGroup = path.substring(1,path.indexOf("/",1));
+            String finalGroup = path.substring(1, path.indexOf("/", 1));
             routerBean.setGroup(finalGroup);
         }
 
