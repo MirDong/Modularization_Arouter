@@ -103,9 +103,9 @@ public class ARouterProcessor extends AbstractProcessor {
      */
     private Filer filer;
     private String options;
-    /**path仓库**/
+    /**path仓库   仓库一 Path  缓存一  Map<"personal", List<RouterBean>>**/
     private Map<String, List<RouterBean>> mPathMaps = new HashMap<>();
-    /**group仓库**/
+    /**group仓库   仓库二 Group 缓存二  Map<"personal", "ARouter$$Path$$personal.class">**/
     private Map<String, String> mGroupMaps = new HashMap<>();
     private String aptPackage;
 

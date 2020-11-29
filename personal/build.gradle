@@ -26,7 +26,7 @@ android {
                 // project.getName() == personal
                 // this.project.getName() == personal
                 // this.getProject().getName() == personal
-                arguments = [moduleName: project.getName(), packageNameForAPT: appId.login]
+                arguments = [moduleName: project.getName(), packageNameForAPT: packageNameForAPT]
             }
         }
     }

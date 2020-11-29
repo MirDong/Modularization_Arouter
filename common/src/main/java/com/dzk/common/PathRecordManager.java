@@ -23,7 +23,7 @@ import java.util.Map;
  *
  * 组名：app，login，personal
  *       详情login=[Login_MainActivity,Login_MainActivity2,Login_MainActivity3]
- *
+ *  *
  */
 public class PathRecordManager {
 

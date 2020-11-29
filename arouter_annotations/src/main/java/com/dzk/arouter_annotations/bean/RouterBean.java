@@ -46,6 +46,10 @@ public class RouterBean {
         this.group = group;
     }
 
+    public Class<?> getMyClass() {
+        return myClass;
+    }
+
     public String getPath() {
         return path;
     }
